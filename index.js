@@ -4,7 +4,7 @@ async function app() {
   console.log('Loading pokenet..');
 
   // Load the model.
-  net = await tf.loadLayersModel('https://drive.google.com/uc?export=download&id=1RQOjbRxg4GM8Q98T0JRjbHuC9f9GYHBH');
+  net = await tf.loadLayersModel('https://raw.githubusercontent.com/theRoughCode/Pokedex/master/js_models/res50_112x112/model.json');
   console.log('Successfully loaded model');
 
   // Make a prediction through the model on our image.
