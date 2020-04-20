@@ -1,0 +1,7 @@
+ipynb_checkpoints/
+PokemonData/
+saved_model/
+*.bin
+*.png
+*.ipynb
+*.zip
