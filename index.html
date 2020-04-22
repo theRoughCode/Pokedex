@@ -13,12 +13,12 @@
         integrity="sha256-xNzN2a4ltkB44Mc/Jz3pT4iU1cmeR0FkXs4pru/JxaQ="
         crossorigin="anonymous"
     ></script>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=UA-156095069-1"></script>
     <script>
-        // if ('serviceWorker' in navigator) {
-        //     window.addEventListener('load', () => {
-        //         navigator.serviceWorker.register('sw.js');
-        //     });
-        // }
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'UA-156095069-1');
     </script>
     <title>Who's That Pokémon?</title>
 </head>

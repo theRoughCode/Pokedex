@@ -1,8 +1,8 @@
 let model;
 
-const modelURL = 'https://raw.githubusercontent.com/theRoughCode/Pokedex/master/js_models/res50_112x112/model.json';
-const modelIndexDbUrl = 'indexeddb://pokeresnet-model';
-const weightsURLPrefix = 'https://github.com/theRoughCode/Pokedex/raw/master/js_models/res50_112x112';
+const modelURL = 'https://raw.githubusercontent.com/theRoughCode/Pokedex/master/js_models/mobilenet_128x128/model.json';
+const modelIndexDbUrl = 'indexeddb://pokenet-model';
+const weightsURLPrefix = 'https://github.com/theRoughCode/Pokedex/raw/master/js_models/mobilenet_128x128';
 
 const pokemonNames = ['Abra', 'Aerodactyl', 'Alakazam', 'Alolan Sandslash', 'Arbok', 'Arcanine',
 'Articuno', 'Beedrill', 'Bellsprout', 'Blastoise', 'Bulbasaur', 'Butterfree',
@@ -41,7 +41,7 @@ const loadingTextArr = [
 ];
 
 async function fetchModel() {
-  console.log('Loading pokemonresnet..');
+  console.log('Loading pokenet..');
   try {
         // Try loading locally saved model
         const model = await tf.loadLayersModel(modelIndexDbUrl);
@@ -68,23 +68,28 @@ async function fetchModel() {
 
 async function predict(input, model) {
     const k = 20;
+    const IMG_SIZE = 128;
 
-    // Make a prediction through the model on our image.
-    // const imgEl = document.getElementById('img');
+    // Preprocess image
     let img = tf.browser.fromPixels(input).expandDims(0);
-    img = tf.image.resizeBilinear(img, [112, 112]).div(255);
+    img = tf.image.resizeBilinear(img, [IMG_SIZE, IMG_SIZE]).div(255);
     
-    const result = model.predict(img);
-    const topk = tf.topk(result, k, true);
-    const preds = topk.indices.dataSync();
-    const confidence = topk.values.dataSync();
-    const pred = result.argMax(1).dataSync();
+    // Get predictions
+    const result = model.predict(img).flatten();
+    const preds = result.softmax();
+    const pred = preds.argMax().dataSync();
+
+    // Get top k predictions
+    const  { values, indices } = tf.topk(preds, k, true);
+    const topkIdx = indices.dataSync();
+    const confidence = values.dataSync();
     const topKPreds = [];
+
     for (let i = 0; i < k; i++) {
         if (confidence[i] < 0.0001) break;
         topKPreds.push({
             conf: confidence[i],
-            pred: pokemonNames[preds[i]]
+            pred: pokemonNames[topkIdx[i]]
         });
     }
     return {
@@ -93,22 +98,11 @@ async function predict(input, model) {
     };
 }
 
-// {
-//     name,
-//     id,
-//     image,
-//     height,
-//     weight,
-//     abilities,
-//     stats,
-//     types,
-//     colour,
-//     shape,
-//     evolution_chain,
-//     habitat,
-//     description
-// }
 const loadInfo = async (pokemon) => {
+    // info = { 
+    //     name, id, image, height, weight, abilities, stats,
+    //     types, colour, shape, evolution_chain, habitat, description
+    // }
     const info = await getPokeInfo(pokemon);
     for (const key in info) {
         const el = $(`#poke-${key}`);
@@ -122,11 +116,30 @@ const loadInfo = async (pokemon) => {
     $('#pokedex').removeClass('hidden');
 };
 
+// Format top k predictions as unordered list
 const formatTopk = (topk) => {
     topk = topk.map(({ conf, pred }) => `<li>${pred} (${(conf * 100).toFixed(3)}% confidence)</li>`);
     return `<ul id="poke-topk">${topk.join('')}</ul>`;
 };
 
+// Run prediction on input and load information onto UI
+const runPrediction = async (input) => {
+    try {
+        const { pred, topk } = await predict(input, model);
+        const topkContent = formatTopk(topk);
+        $('#prediction-label').removeClass('hidden');
+        $('#predictions-tab').removeClass('hidden');
+        $('#predictions-list').html(topkContent);
+        $('#predictions-tab').trigger('click');
+        $('#predict-button').html('Predict');
+        loadInfo(pred);
+    } catch (error) {
+        alert('Oops, a voltorb shocked our servers!');
+        console.error(error);
+    }
+}
+
+// Listen for click on predict button
 $('#predict-button').on('click', function() {
     let openTabId, input;
     // Get open tab
@@ -140,30 +153,17 @@ $('#predict-button').on('click', function() {
             alert('Please upload an image!');
             return;
         }
-    } else {
+    } else if (openTabId === 'draw') {
         input = document.getElementById("paint-canvas").getContext('2d').canvas;
-    }
+    } else return;
     $('#pokedex').addClass('hidden');
     $(this).html('Predicting...');
-    (async () => {
-        try {
-            const { pred, topk } = await predict(input, model);
-            const topkContent = formatTopk(topk);
-            $('#prediction-label').removeClass('hidden');
-            $('#predictions-tab').removeClass('hidden');
-            $('#predictions-list').html(topkContent);
-            $('#predictions-tab').trigger('click');
-            $(this).html('Predict');
-            loadInfo(pred);
-        } catch (error) {
-            alert('Oops, a voltorb shocked our servers!');
-            console.error(error);
-        }
-    })();
+    setTimeout(() => runPrediction(input), 2000)
 });
 
+// Load model
 async function load() {
-    const minWaitTime = 100;
+    const minWaitTime = 400;
     const loadingText = loadingTextArr[Math.floor(Math.random() * loadingTextArr.length)];
     $('#loading-text').html(`${loadingText}&hellip;`);
     try {
@@ -172,6 +172,9 @@ async function load() {
         while (new Date().getTime() - startTime < minWaitTime) {}
         $('#loading').fadeOut(500);
         setTimeout(() => {
+            $('html').css('background-color', 'transparent');
+            $('body').css('background-color', 'transparent');
+            $('body').css('background-image', 'url("assets/background.jpg")');
             $('html').css('height', 'auto');
             $('body').css('height', 'auto');
             $('body').css('padding', '20px');
