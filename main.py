@@ -5,10 +5,10 @@ import numpy as np
 import matplotlib.pyplot as plt
 import pathlib
 
-batch_size = 32
-epochs = 15
-img_height = 112
-img_width = 112
+batch_size = 64
+epochs = 150
+img_height = 128
+img_width = 128
 
 dataset_path = 'PokemonData'
 pokemon_id = {}
@@ -46,7 +46,6 @@ test_data_gen = image_generator.flow_from_directory(directory=str(data_dir),
                                                      target_size=(img_height, img_width))
 
 model = ResNet50((img_height, img_width, 3), num_cls)
-model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
 history = model.fit(train_data_gen, epochs=epochs, steps_per_epoch=steps_per_epoch,
                     validation_data=test_data_gen, validation_steps=steps_per_epoch // 5)
 # Plot results

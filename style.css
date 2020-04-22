@@ -343,12 +343,23 @@ svg {
   display: flex;
   background-color: #dddddd93;
   border-radius: 30px;
+  position: relative;
 }
 #poke-image {
   max-width: 100%;
   height: 100%;
   width: auto;
   margin: auto;
+}
+#poke-types {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+}
+.poke-type {
+  width: 40px;
+  height: 40px;
+  margin-left: 3px;
 }
 
 #poke-description-container {

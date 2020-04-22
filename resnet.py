@@ -153,5 +153,6 @@ def ResNet50(input_shape=None, classes=1000):
     inputs = img_input
     # Create model.
     model = Model(inputs, x, name='pokemonresnet')
+    model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
 
     return model
