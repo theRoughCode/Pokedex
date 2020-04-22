@@ -1,12 +1,205 @@
-<html>
-    <head>
-        <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@1.7.2/dist/tf.min.js"></script>
-    </head>
-    <body>
-        <div id="console"></div>
-        <!-- Add an image that we will use to test -->
-        <img id="img" crossorigin src="https://vignette.wikia.nocookie.net/pokemon-planet/images/e/e6/Gyarados-Normal.PNG" width="112" height="112"/>
-        <!-- Load index.js after the content of the page -->
-        <script src="index.js"></script>
-    </body>
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <link rel="icon" href="https://assets.pokemon.com/static2/_ui/img/favicon.ico">
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@1.7.2/dist/tf.min.js"></script>
+    <script
+        src="https://code.jquery.com/jquery-3.5.0.min.js"
+        integrity="sha256-xNzN2a4ltkB44Mc/Jz3pT4iU1cmeR0FkXs4pru/JxaQ="
+        crossorigin="anonymous"
+    ></script>
+    <script>
+        // if ('serviceWorker' in navigator) {
+        //     window.addEventListener('load', () => {
+        //         navigator.serviceWorker.register('sw.js');
+        //     });
+        // }
+    </script>
+    <title>Who's That Pokémon?</title>
+</head>
+
+<body>
+    <div id="loading">
+        <div class="loader">
+            <svg version="1.1" id="Ebene_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
+            viewBox="0 0 330 331.7" enable-background="new 0 0 330 331.7" xml:space="preserve">
+                <circle id="center" fill="#FFFFFF" cx="165" cy="165.9" r="36.5"/>
+                <g id="bottom">
+                <path id="bottom1" fill="#FFFFFF" d="M165,267.6c-28.7,0-54.6-11.9-73.1-31L76.2,252c22.5,23.2,53.9,37.6,88.8,37.6
+                        c30.5,0,58.4-11,80-29.3l-14.6-16.5C212.7,258.6,189.9,267.6,165,267.6z"/>
+                    <path id="bottom2" fill="#FFFFFF" d="M288.1,178.4l-22.1,0c-3.2,26.1-16.4,49.2-35.6,65.3l14.6,16.5
+                        C268.7,240.1,284.8,211.2,288.1,178.4z"/>
+                    <path id="bottom3" fill="#FFFFFF" d="M244.8,178.4C244.8,178.4,244.8,178.4,244.8,178.4l-21.8,0c-3.8,18.8-16.6,33.7-33.7,41.4l0,0
+                        l8.8,19.6c-9.4,4.3-19.8,6.8-30.8,7.1l0.5,21c50.6-1.4,92-39.8,98.1-89.1L244.8,178.4z"/>
+                    <path id="bottom4" fill="#FFFFFF" d="M198.2,239.5l-8.8-19.6c-7.4,3.4-15.7,5.2-24.4,5.2c-28.4,0-52.1-20-57.9-46.6l-21.8,0l-0.1,0
+                        l-21.1,0c0,0.1,0,0.1,0,0.2l-0.1-0.2l-22.1,0.1c2.9,28.5,15.4,54.1,34.3,73.5l15.7-15.4l-0.1-0.2c18.5,19.2,44.5,31.1,73.2,31.1
+                        c0.9,0,1.9,0,2.8,0l-0.5-21C178.4,246.2,188.8,243.7,198.2,239.5z"/>
+                </g>
+                <g id="top">
+                    <path id="top3" fill="#FFFFFF" d="M288.1,153.2c-2.2-22.1-10.3-42.5-22.7-59.7l-17.9,12.9l-17,12.3c0.1,0.2,0.2,0.3,0.3,0.5
+                        c-14.6-20.6-38.7-34-65.8-34c-40.3,0-73.7,29.5-79.8,68.1l21.9,0c5.8-26.7,29.5-46.6,57.9-46.6c28.4,0,52.1,20,57.9,46.6
+                        L288.1,153.2z"/>
+                    <path id="top2" fill="#FFFFFF" d="M165,64.1c-39.2,0-73.3,22.2-90.2,54.7c0,0,0,0,0,0l-19.5-10.2c-7.1,13.6-11.7,28.6-13.3,44.6
+                        l22.1,0v0l21.2,0c6-38.6,39.5-68.1,79.8-68.1c7.9,0,15.6,1.2,22.8,3.3l5.9-20.2C184.6,65.6,175,64.1,165,64.1z"/>
+                    <path id="top1" fill="#FFFFFF" d="M193.7,68.2l-5.9,20.2c17.4,5.1,32.4,15.9,42.7,30.3l17-12.3l17.9-12.9
+                        c-15.9-22-38.8-38.6-65.5-46.4c-11.1-3.3-22.8-5-34.9-5c-47.7,0-89.1,27-109.7,66.6l19.5,10.2c17-32.5,51-54.7,90.2-54.7
+                        C175,64.1,184.6,65.6,193.7,68.2"/>
+                </g>
+            </svg>
+            <span id="loading-text"></span>
+        </div>
+    </div>
+    <div id="main">
+        <h1>Who's That Pokémon?</h1>
+        <div class="hidden" id="pokedex">
+            <div id="poke-title">
+                <span id="poke-name"></span>
+                <span id="poke-id"></span>
+            </div>
+            <div class="row">
+                <div class="column" id="poke-image-container">
+                    <img id="poke-image">
+                </div>
+                <div class="column" id="poke-description-container">
+                    <span id="poke-description"></span>
+                    <div class="poke-info">
+                        <span class="poke-info-title">Height</span>
+                        <span class="poke-info-content" id="poke-height"></span>
+                    </div>
+                    <div class="poke-info">
+                        <span class="poke-info-title">Weight</span>
+                        <span class="poke-info-content" id="poke-weight"></span>
+                    </div>
+                    <div class="poke-info">
+                        <span class="poke-info-title">Colour</span>
+                        <span class="poke-info-content" id="poke-colour"></span>
+                    </div>
+                    <div class="poke-info">
+                        <span class="poke-info-title">Shape</span>
+                        <span class="poke-info-content" id="poke-shape"></span>
+                    </div>
+                    <div class="poke-info">
+                        <span class="poke-info-title">Habitat</span>
+                        <span class="poke-info-content" id="poke-habitat"></span>
+                    </div>
+                    <div class="poke-info">
+                        <span class="poke-info-title">Abilities</span>
+                        <span class="poke-info-content" id="poke-abilities"></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Tab links -->
+        <div class="tab">
+            <button class="tablinks" id="defaultOpen" onclick="selectTab(event, 'upload')">Upload Image</button>
+            <button class="tablinks" onclick="selectTab(event, 'draw')">Draw</button>
+            <button class="tablinks hidden" id="predictions-tab" onclick="selectTab(event, 'predictions')">Predictions</button>
+        </div>
+        
+        <!-- Tab content -->
+        <div id="upload" class="tabcontent">
+            <section>
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="form-group">
+                            <h4 class="control-label">Upload an image of a Pokémon you caught</h4>
+                            <div class="preview-zone hidden">
+                            <div class="box box-solid">
+                                <div class="box-header with-border">
+                                    <div><b>Preview</b></div>
+                                </div>
+                                <div class="box-body"></div>
+                            </div>
+                            </div>
+                            <div class="dropzone-wrapper">
+                                <div class="dropzone-desc">
+                                    <i class="glyphicon glyphicon-download-alt"></i>
+                                    <p>Choose an image file or drag it here.</p>
+                                </div>
+                                <input type="file" name="img_logo" class="dropzone">
+                            </div>
+                            <div class="pastezone-wrapper">
+                                <span style="margin: auto;">Or paste an image here!</span>
+                                <input type="text" id="paste-image">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+        
+        <div id="draw" class="tabcontent">
+            <h3>Draw your favourite Pokémon!</h3>
+            <main>
+                <div class="left-block">
+                    <div class="colors">
+                        <button type="button" value="#0000ff"></button>
+                        <button type="button" value="#009fff"></button>
+                        <button type="button" value="#0fffff"></button>
+                        <button type="button" value="#bfffff"></button>
+                        <button type="button" value="#000000"></button>
+                        <button type="button" value="#333333"></button>
+                        <button type="button" value="#666666"></button>
+                        <button type="button" value="#999999"></button>
+                        <button type="button" value="#ffcc66"></button>
+                        <button type="button" value="#ffcc00"></button>
+                        <button type="button" value="#ffff00"></button>
+                        <button type="button" value="#ffff99"></button>
+                        <button type="button" value="#003300"></button>
+                        <button type="button" value="#555000"></button>
+                        <button type="button" value="#00ff00"></button>
+                        <button type="button" value="#99ff99"></button>
+                        <button type="button" value="#f00000"></button>
+                        <button type="button" value="#ff6600"></button>
+                        <button type="button" value="#ff9933"></button>
+                        <button type="button" value="#f5deb3"></button>
+                        <button type="button" value="#330000"></button>
+                        <button type="button" value="#663300"></button>
+                        <button type="button" value="#cc6600"></button>
+                        <button type="button" value="#deb887"></button>
+                        <button type="button" value="#aa0fff"></button>
+                        <button type="button" value="#cc66cc"></button>
+                        <button type="button" value="#ff66ff"></button>
+                        <button type="button" value="#ff99ff"></button>
+                        <button type="button" value="#e8c4e8"></button>
+                        <button type="button" value="#ffffff"></button>
+                    </div>
+                    <div class="brushes">
+                        <button type="button" value="1"></button>
+                        <button type="button" value="2"></button>
+                        <button type="button" value="3"></button>
+                        <button type="button" value="4"></button>
+                        <button type="button" value="5"></button>
+                    </div>
+                    <div class="buttons">
+                        <button id="clear" type="button">Clear</button>
+                        <button id="save" type="button">Save</button>
+                    </div>
+                </div>
+                <div class="right-block">
+                    <canvas id="paint-canvas" width="640" height="400"></canvas>
+                </div>
+            </main>
+        </div>
+        <div id="predictions" class="tabcontent">
+            <span>Top 20 Predictions:</span>
+            <div id="predictions-list"></div>
+        </div>
+        <div id="button-container">
+            <button type="button" id="predict-button">
+                Predict
+            </button>
+        </div>
+    </div>
+    <script src="pokedex.js"></script>
+    <script src="index.js"></script>
+    <script src="upload.js"></script>
+    <script src="draw.js"></script>
+</body>
+
 </html>

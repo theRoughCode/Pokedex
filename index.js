@@ -28,6 +28,18 @@ const pokemonNames = ['Abra', 'Aerodactyl', 'Alakazam', 'Alolan Sandslash', 'Arb
 'Vulpix', 'Wartortle', 'Weedle', 'Weepinbell', 'Weezing', 'Wigglytuff',
 'Zapdos', 'Zubat'];
 
+const loadingTextArr = [
+    'Catching wild Pidgeys',
+    'Talking to Professor Oak',
+    'Fighting Team Rocket',
+    'Fishing up Magikarp',
+    'Training with Machoke',
+    'Running from the Squirtle Squad',
+    'Saying goodbye to Butterfree',
+    'Getting ignored by Charmeleon',
+    'Choosing a starter Pokémon'
+];
+
 async function fetchModel() {
   console.log('Loading pokemonresnet..');
   try {
@@ -54,18 +66,144 @@ async function fetchModel() {
     }
 }
 
-async function app() {
-  // Load the model.
+async function predict(input, model) {
+    const k = 20;
 
-  const model = await fetchModel();
-
-  // Make a prediction through the model on our image.
-  const imgEl = document.getElementById('img');
-  const img = tf.browser.fromPixels(imgEl).div(255).expandDims(0);
- 
-  const result = model.predict(img);
-  const pred = result.argMax(1).dataSync();
-  console.log(result.argMax(0), result.argMax(1))
-  console.log(pokemonNames[pred[0]])
+    // Make a prediction through the model on our image.
+    // const imgEl = document.getElementById('img');
+    let img = tf.browser.fromPixels(input).expandDims(0);
+    img = tf.image.resizeBilinear(img, [112, 112]).div(255);
+    
+    const result = model.predict(img);
+    const topk = tf.topk(result, k, true);
+    const preds = topk.indices.dataSync();
+    const confidence = topk.values.dataSync();
+    const pred = result.argMax(1).dataSync();
+    const topKPreds = Array(k);
+    for (let i = 0; i < k; i++) {
+        topKPreds[i] = {
+            conf: confidence[i],
+            pred: pokemonNames[preds[i]]
+        };
+    }
+    return {
+        'pred': pokemonNames[pred[0]],
+        topk: topKPreds
+    };
 }
-app();
+
+// {
+//     name,
+//     id,
+//     image,
+//     height,
+//     weight,
+//     abilities,
+//     stats,
+//     types,
+//     colour,
+//     shape,
+//     evolution_chain,
+//     habitat,
+//     description
+// }
+const loadInfo = async (pokemon) => {
+    const info = await getPokeInfo(pokemon);
+    for (const key in info) {
+        const el = $(`#poke-${key}`);
+        if (el == null) continue;
+        if (key === 'image') {
+            $(el).attr('src', info[key]);
+            continue;
+        }
+        $(el).html(info[key]);
+    }
+    $('#pokedex').removeClass('hidden');
+};
+
+const formatTopk = (topk) => {
+    topk = topk.map(({ conf, pred }) => `<li>${pred} (${(conf * 100).toFixed(3)}% confidence)</li>`);
+    return `<ul id="poke-topk">${topk.join('')}</ul>`;
+};
+
+$('#predict-button').on('click', function() {
+    let openTabId, input;
+    // Get open tab
+    const tabcontent = document.getElementsByClassName("tabcontent");
+    for (i = 0; i < tabcontent.length; i++) {
+        if (tabcontent[i].style.display === "block") openTabId = tabcontent[i].id;
+    }
+    if (openTabId === 'upload') {
+        input = document.getElementById('img-preview');
+        if (input == null) {
+            alert('Please upload an image!');
+            return;
+        }
+    } else {
+        input = document.getElementById("paint-canvas").getContext('2d').canvas;
+    }
+    $('#pokedex').addClass('hidden');
+    $(this).html('Predicting...');
+    (async () => {
+        try {
+            const { pred, topk } = await predict(input, model);
+            const topkContent = formatTopk(topk);
+            $('#prediction-label').removeClass('hidden');
+            $('#predictions-tab').removeClass('hidden');
+            $('#predictions-list').html(topkContent);
+            $('#predictions-tab').trigger('click');
+            $(this).html('Predict');
+            loadInfo(pred);
+        } catch (error) {
+            alert('Oops, a voltorb shocked our servers!');
+            console.error(error);
+        }
+    })();
+});
+
+async function load() {
+    const minWaitTime = 100;
+    const loadingText = loadingTextArr[Math.floor(Math.random() * loadingTextArr.length)];
+    $('#loading-text').html(`${loadingText}&hellip;`);
+    try {
+        const startTime = new Date().getTime();
+        model = await fetchModel();
+        while (new Date().getTime() - startTime < minWaitTime) {}
+        $('#loading').fadeOut(500);
+        setTimeout(() => {
+            $('html').css('height', 'auto');
+            $('body').css('height', 'auto');
+            $('body').css('padding', '20px');
+            $('#main').fadeIn(100);
+        }, 400);
+    } catch (error) {
+        console.log(error);
+    }
+}
+
+function selectTab(evt, tabName) {
+    // Declare all variables
+    let i, tabcontent, tablinks;
+
+    // Get all elements with class="tabcontent" and hide them
+    tabcontent = document.getElementsByClassName("tabcontent");
+    for (i = 0; i < tabcontent.length; i++) {
+        tabcontent[i].style.display = "none";
+    }
+
+    // Get all elements with class="tablinks" and remove the class "active"
+    tablinks = document.getElementsByClassName("tablinks");
+    for (i = 0; i < tablinks.length; i++) {
+        tablinks[i].className = tablinks[i].className.replace(" active", "");
+    }
+
+    // Show the current tab, and add an "active" class to the button that opened the tab
+    document.getElementById(tabName).style.display = "block";
+    const target = evt.currentTarget || evt.target;
+    target.className += " active";
+}
+
+load();
+        
+// Get the element with id="defaultOpen" and click on it
+document.getElementById("defaultOpen").click();
