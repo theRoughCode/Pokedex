@@ -432,6 +432,26 @@ svg {
   visibility: visible;
 }
 
+#poke-evolution-title {
+  margin-bottom: 0;
+  margin-left: 10px;
+}
+#poke-evolution {
+  display: flex;
+}
+.poke-evo-container {
+  display: flex;
+  flex-direction: column;
+  margin: 2px;
+}
+.poke-evo-name {
+  text-align: center;
+}
+.poke-evo-arrow {
+  margin: auto 0;
+}
+
+
 /* Create two equal columns that floats next to each other */
 .column {
   float: left;

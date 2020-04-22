@@ -158,7 +158,8 @@ $('#predict-button').on('click', function() {
     } else return;
     $('#pokedex').addClass('hidden');
     $(this).html('Predicting...');
-    setTimeout(() => runPrediction(input), 2000)
+    // Add delay to allow previous rendering before using WebGL to predict
+    setTimeout(() => runPrediction(input), 100)
 });
 
 // Load model

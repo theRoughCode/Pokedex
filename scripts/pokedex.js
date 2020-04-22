@@ -14,11 +14,30 @@ const getPokemonDesc = (flavour_texts) => {
     }
 }
 
-const getEvolutionChain = async (chain) => {
-    const pokemonName = capitalize(chain.species.name);
-    if (chain.evolves_to.length === 0) return [pokemonName];
-    const nextChain = await getEvolutionChain(chain.evolves_to[0]);
-    return [pokemonName].concat(nextChain);
+const getEvolutionChain = (chain) => {
+    const name = capitalize(chain.species.name);
+    if (chain.evolves_to.length === 0) return [name];
+    const nextChain = getEvolutionChain(chain.evolves_to[0]);
+    return [name].concat(nextChain);
+};
+
+const getSprites = async (pokemonArr) => {
+    const reqs = pokemonArr.map(async (name) => {
+        const resp = await fetch(`https://pokeapi.co/api/v2/pokemon/${name.toLowerCase()}`);
+        const { sprites } = await resp.json();
+        return { name, spriteUrl: sprites['front_default'] };
+    })
+    return await Promise.all(reqs);
+}
+
+const formatEvolution = (evo_chain) => {
+    evo_chain = evo_chain.map(({ name, spriteUrl }) => `
+        <div class="poke-evo-container">
+            <img class="poke-evo-img" src="${spriteUrl}">
+            <span class="poke-evo-name">${name}</span>
+        </div>
+    `);
+    return evo_chain.join('<span class="poke-evo-arrow">→</span>');
 };
 
 const getAbilityDesc = async (url) => {
@@ -100,8 +119,10 @@ const getPokeInfo = async (pokemon) => {
     
     // Get evolution info
     resp = await fetch(evolution_chain.url);
-    const { chain } = await resp.json();
-    const evolution = await getEvolutionChain(chain);
+    let { chain } = await resp.json();
+    chain = getEvolutionChain(chain);
+    chain = await getSprites(chain);
+    const evolution = formatEvolution(chain);
 
     return {
         'name': capitalize(pokemon),
