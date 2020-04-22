@@ -5,7 +5,7 @@ body {
 
 body {
   margin: 0px;
-  font-family: "Passion One", cursive !important;
+  font-family: "Fira Sans","Trebuchet MS",Ubuntu,Helvetica,Arial sans-serif !important;
   background-image: url("assets/background.jpg");
 }
 

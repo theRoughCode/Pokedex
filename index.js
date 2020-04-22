@@ -79,12 +79,13 @@ async function predict(input, model) {
     const preds = topk.indices.dataSync();
     const confidence = topk.values.dataSync();
     const pred = result.argMax(1).dataSync();
-    const topKPreds = Array(k);
+    const topKPreds = [];
     for (let i = 0; i < k; i++) {
-        topKPreds[i] = {
+        if (confidence[i] < 0.0001) break;
+        topKPreds.push({
             conf: confidence[i],
             pred: pokemonNames[preds[i]]
-        };
+        });
     }
     return {
         'pred': pokemonNames[pred[0]],

@@ -35,10 +35,10 @@ const parseAbilities = async (abilities) => {
         const desc = await getAbilityDesc(ability.url);
         ability = ability.name.split('-').map(x => capitalize(x)).join(' ');
         if (is_hidden) ability = `${ability} (hidden)`;
-        return `<div class="tooltip">
+        return `<li class="tooltip">
                     <span class="poke-ability">${ability}</span>
                     <span class="tooltiptext">${desc}</span>
-                </div>`;
+                </li><br>`;
     }));
     return `<ul>${abilities.join('')}</ul>`;
 };
@@ -64,7 +64,7 @@ const parseTypes = (types) => {
 const getPokeInfo = async (pokemon) => {
     pokemon = pokemon.toLowerCase();
     // Get general info
-    let resp = await fetch(`http://pokeapi.co/api/v2/pokemon/${pokemon}`);
+    let resp = await fetch(`https://pokeapi.co/api/v2/pokemon/${pokemon}`);
     let {
         id,
         height,
@@ -73,14 +73,18 @@ const getPokeInfo = async (pokemon) => {
         stats,
         types
     } = await resp.json();
+    // Convert from decimetres to metres
+    height /= 10;
+    height = `${height} m`;
     // Convert from hectograms to pounds and round to 1 decimal
     weight = Math.round((weight / 4.536) * 10) / 10;
+    weight = `${weight} lbs`
     abilities = await parseAbilities(abilities);
     stats = parseStats(stats);
     types = parseTypes(types);
 
     // Get specific info
-    resp = await fetch(`http://pokeapi.co/api/v2/pokemon-species/${pokemon}`);
+    resp = await fetch(`https://pokeapi.co/api/v2/pokemon-species/${pokemon}`);
     let {
         color,
         shape,
@@ -100,7 +104,7 @@ const getPokeInfo = async (pokemon) => {
 
     return {
         'name': capitalize(pokemon),
-        id: `#${id}`,
+        id: `#${id.toString().padStart(3, '0')}`,
         'image': `${image_url}/${id}.png`,
         height,
         weight,
