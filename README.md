@@ -29,3 +29,6 @@ Each model is evaluated over a small test dataset of 1309 images.
 | MobileNet 224x224      | 18s | 874ms | 1.3993 | 0.6578 |
 | ResNet-50 224x224      | 19s | 914ms | 2.1577 | 0.5569 |
 
+## Next Steps
+The current model performs poorly on drawn images. A possible direction is to preprocess the images to remove colour to detect shape or train it on hand-drawn images of Pokémon.
+
