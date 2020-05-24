@@ -22,12 +22,12 @@ However, ResNet's model size is too large for prediction over the browser so I s
 ## Performance
 Each model is evaluated over a small test dataset of 1309 images.
 
-| Model         | Total Time    | Time per step  | Loss | Accuracy |
-| ------------- |:-------------:| :--------------:| :---: | :-----:|
-| ResNet-50 112x112      | 10s | 465ms | 2.6647 | 0.5218 |
-| MobileNet 128x128      | 10s | 483ms | 1.6229 | 0.6348 |
-| MobileNet 224x224      | 18s | 874ms | 1.3993 | 0.6578 |
-| ResNet-50 224x224      | 19s | 914ms | 2.1577 | 0.5569 |
+| Model         | Total Time    | Time per step  | Loss | Accuracy | Inference Speed |
+| ------------- |:-------------:| :-------------:| :---: | :------:| :--------------:|
+| ResNet-50 112x112      | 10s | 465ms | 2.6647 | 0.5218 | 0.0425s |
+| MobileNet 128x128      | 10s | 483ms | 1.6229 | 0.6348 | 0.0278s |
+| MobileNet 224x224      | 18s | 874ms | 1.3993 | 0.6578 | 0.135s |
+| ResNet-50 224x224      | 19s | 914ms | 2.1577 | 0.5569 | 0.0464s |
 
 ## Next Steps
 The current model performs poorly on drawn images. A possible direction is to preprocess the images to remove colour to detect shape or train it on hand-drawn images of Pokémon.
